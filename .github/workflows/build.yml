@@ -11,15 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check if main.py exists
-        run: |
-          if [ ! -f "main.py" ]; then
-            echo "❌ ERREUR CRITIQUE : Le fichier 'main.py' est introuvable dans le dépôt !"
-            echo "Assure-toi d'avoir renommé ton fichier Python en 'main.py' et de l'avoir poussé (push) sur GitHub."
-            exit 1
-          fi
-          echo "✅ main.py trouvé, on continue."
-
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -33,35 +24,28 @@ jobs:
             git \
             python3-pip \
             python3-dev \
-            ffmpeg \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
             autoconf \
+            automake \
             libtool \
             pkg-config \
+            zlib1g-dev \
+            libncurses5 \
+            libncursesw5 \
+            libtinfo5 \
             libffi-dev \
-            libssl-dev
+            libssl-dev \
+            libunwind-dev
 
       - name: Install Buildozer and Cython
         run: |
           pip install --upgrade pip
-          pip install buildozer cython==0.29.33 virtualenv
+          pip install buildozer cython==0.29.33
 
       - name: Build APK with Buildozer
         run: |
           export BUILDOZER_ALLOW_ROOT=1
           
-          # Création du fichier buildozer.spec
+          # Création du fichier de configuration
           cat > buildozer.spec << 'EOF'
           [app]
           title = TV Remote
@@ -79,16 +63,13 @@ jobs:
           android.minapi = 21
           android.archs = arm64-v8a
           android.accept_sdk_license = True
-          
           [buildozer]
           log_level = 2
           warn_on_root = 1
           EOF
           
-          # Nettoyage avant build pour éviter les conflits de cache corrompu
+          # Nettoyage et compilation
           buildozer android clean
-          
-          # Lancement du build
           buildozer -v android debug
 
       - name: Upload APK
